@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PANKAJ BHARDWAJ WAY2LAAB</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <style>
         @keyframes float {
             0%, 100% { transform: translate(0, 0); }
@@ -31,6 +30,15 @@
         .feature-item:nth-child(1) { animation-delay: 0.4s; }
         .feature-item:nth-child(2) { animation-delay: 0.5s; }
         .feature-item:nth-child(3) { animation-delay: 0.6s; }
+        /* Locked state for Telegram button */
+        #tgBtn.locked {
+            background: #9ca3af !important;
+            background-image: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+            cursor: not-allowed;
+            -webkit-tap-highlight-color: transparent;
+        }
     </style>
 <!-- Meta Pixel Code -->
 <script>
@@ -42,11 +50,11 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '4127966994005840');
+fbq('init', '1157002040018535');
 fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=4127966994005840&ev=PageView&noscript=1"
+src="https://www.facebook.com/tr?id=1157002040018535&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 </head>
@@ -98,15 +106,17 @@ src="https://www.facebook.com/tr?id=4127966994005840&ev=PageView&noscript=1"
                 </div>
             </div>
 
-            <!-- CTA Button -->
+            <!-- CTA Button (locked until verified; no link in markup) -->
             <a 
-                href="https://telegram.me/+py6pfts-wIQ1Yzc1"
-                class="flex justify-center items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-9 py-5 rounded-2xl font-extrabold text-[15px] no-underline shadow-lg shadow-blue-500/50 transition-all duration-300 mb-6 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/70 active:-translate-y-0.5"
+                id="tgBtn"
+                role="button"
+                aria-disabled="true"
+                class="locked flex justify-center items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-9 py-5 rounded-2xl font-extrabold text-[15px] no-underline shadow-lg shadow-blue-500/50 transition-all duration-300 mb-6 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/70 active:-translate-y-0.5"
             >
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161l-1.894 8.927c-.141.637-.516.793-1.046.494l-2.888-2.13-1.393 1.34c-.154.154-.283.283-.581.283l.207-2.958 5.338-4.824c.232-.207-.051-.322-.36-.115L8.893 13.617l-2.846-.891c-.619-.194-.632-.619.13-.916l11.12-4.286c.516-.194.968.115.799.916z"/>
                 </svg>
-                Join Telegram Channel
+                <span id="tgLabel">PLEASE WAIT...</span>
             </a>
 
             <!-- Features Grid -->
@@ -137,6 +147,90 @@ src="https://www.facebook.com/tr?id=4127966994005840&ev=PageView&noscript=1"
             </div>
         </div>
     </div>
+
+<script>
+(function () {
+    var btn = document.getElementById('tgBtn');
+    var label = document.getElementById('tgLabel');
+    if (!btn || !label) return;
+
+    // Link is assembled only after verification passes
+    var parts = ['https://', 'telegram.me/', '+py6pfts-wIQ1Yzc1'];
+
+    var MIN_MS = 3000, MOVES_NEEDED = 6, CLICK_DELAY = 400;
+    var timeOk = false, interacted = false, unlocked = false, busy = false;
+    var moves = 0, unlockedAt = 0;
+
+    // ---- Bot / headless detection ----
+    function isBot() {
+        try {
+            var ua = navigator.userAgent || '';
+            if (navigator.webdriver) return true;
+            if (/HeadlessChrome|PhantomJS|bot|crawl|spider|slurp|curl|wget|python|java\/|selenium|puppeteer|playwright|lighthouse|facebookexternalhit|node-fetch|httpclient/i.test(ua)) return true;
+            if (window.callPhantom || window._phantom || window.__nightmare) return true;
+            if (!navigator.languages || navigator.languages.length === 0) return true;
+        } catch (e) {}
+        return false;
+    }
+    var bot = isBot();
+
+    function setLabel(t) { label.textContent = t; }
+
+    function refresh() {
+        if (bot || unlocked) return;
+        if (timeOk && interacted) {
+            unlocked = true;
+            unlockedAt = Date.now();
+            btn.href = parts.join('');
+            btn.removeAttribute('aria-disabled');
+            btn.classList.remove('locked');
+            setLabel('Join Telegram Channel');
+        } else if (timeOk) {
+            setLabel('SCROLL OR TAP TO CONTINUE');
+        } else {
+            setLabel('PLEASE WAIT...');
+        }
+    }
+
+    if (bot) return; // stays locked permanently, no link ever added
+
+    setTimeout(function () { timeOk = true; refresh(); }, MIN_MS);
+
+    // ---- Real interaction (trusted events only) ----
+    function mark(e) {
+        if (!e.isTrusted) return;
+        interacted = true;
+        refresh();
+    }
+    window.addEventListener('touchstart', mark, { passive: true });
+    window.addEventListener('scroll', mark, { passive: true });
+    window.addEventListener('keydown', mark);
+    window.addEventListener('mousemove', function (e) {
+        if (!e.isTrusted) return;
+        if (++moves >= MOVES_NEEDED) mark(e);
+    }, { passive: true });
+
+    // ---- Click handling ----
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!e.isTrusted || !unlocked || busy) return;
+        // ignore the same tap that unlocked the button (accidental taps)
+        if (Date.now() - unlockedAt < CLICK_DELAY) return;
+        busy = true;
+
+        try {
+            if (!sessionStorage.getItem('tg_lead_sent')) {
+                sessionStorage.setItem('tg_lead_sent', '1');
+                if (typeof fbq === 'function') fbq('track', 'Lead');
+            }
+        } catch (err) {
+            // sessionStorage blocked: skip Lead rather than risk duplicates
+        }
+
+        setTimeout(function () { window.location.href = parts.join(''); }, 250);
+    });
+})();
+</script>
 
 </body>
 </html>
